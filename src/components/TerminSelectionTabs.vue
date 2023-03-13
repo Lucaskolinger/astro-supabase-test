@@ -132,7 +132,7 @@ const generateDayFromDate = (datum: any) => {
   }
 };
 const generateWochentage = (termine) => {
-  const dayIntsArray = termine.map((termin) => {
+  const dayIntsArray = termine.map((termin: any) => {
     return new Date(termin.datum).getDay();
   });
   const uniqueArray = [...new Set(dayIntsArray)];
