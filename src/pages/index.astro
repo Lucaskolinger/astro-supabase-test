@@ -1,8 +1,9 @@
 ---
 import TerminSelectionTabs from "@components/TerminSelectionTabs.vue";
-import SubmitBuchungButton from "@components/SubmitBuchungButton.vue";
 import AddChildForm from "@components/AddChildForm.vue";
 import ChildList from "@components/ChildList.vue";
+import FamilyInfo from "@components/FamilyInfo.vue";
+
 import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(
   import.meta.env.SUPABASE_URL,
@@ -20,7 +21,8 @@ let { data: termine } = await supabase.from("termine").select();
     <title>Astro</title>
   </head>
   <body>
-    <div class="flex flex-col items-center pt-32 justify-center">
+    <div class="flex bg-slate-800 flex-col items-center pt-32 justify-center">
+      <FamilyInfo />
       <TerminSelectionTabs client:load termine={termine} />
       <ChildList client:load />
       <AddChildForm client:load />

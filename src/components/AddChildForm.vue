@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from "vue";
+import { useStore } from "@nanostores/vue";
+// Components
 import WarSchonmalBeiUns from "@components/WarSchonmalBeiUns.vue";
 import IsChildAfraid from "@components/IsChildAfraid.vue";
+
 import { Icon } from "@iconify/vue";
-import { useStore } from "@nanostores/vue";
 import {
   TransitionRoot,
   TransitionChild,
@@ -22,10 +24,19 @@ import { wasHereBefore } from "../buchungenStore";
 import { wasHereYear } from "../buchungenStore";
 import { birthday } from "../buchungenStore";
 import { positivesVerbessert } from "../buchungenStore";
-import { addChild } from "../buchungenStore";
-import { allChildren } from "../buchungenStore";
+import { editChildMode } from "../buchungenStore";
+
+import { addNewChild } from "../buchungenStore";
+import { clearAddChildInputs } from "../buchungenStore";
+
+// validation
+import { childInputIsValid } from "../buchungenStore";
+import { addChildErrorMessage } from "../buchungenStore";
+const $childInputIsValid = useStore(childInputIsValid);
+const $addChildErrorMessage = useStore(addChildErrorMessage);
 
 const $isAddChildModalOpen = useStore(isAddChildModalOpen);
+const $editChildMode = useStore(editChildMode);
 
 const $childName = useStore(childName);
 const $positives = useStore(positives);
@@ -35,7 +46,6 @@ const $positivesVerbessert = useStore(positivesVerbessert);
 const $wasHereBefore = useStore(wasHereBefore);
 const $birthday = useStore(birthday);
 const $wasHereYear = useStore(wasHereYear);
-const $allChildren = useStore(allChildren);
 
 const enabled = ref(false);
 </script>
@@ -44,12 +54,15 @@ const enabled = ref(false);
   <button
     type="button"
     class="w-max mb-64 mt-8 rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-    @click="() => isAddChildModalOpen.set(!$isAddChildModalOpen)"
+    @click="
+      () => {
+        isAddChildModalOpen.set(!$isAddChildModalOpen);
+      }
+    "
   >
     <div class="flex gap-2 items-center">
       <Icon icon="material-symbols:add-box" width="1.5rem" />
-      <p v-if="$childName">Mehr Infos zu {{ $childName }} hinzufügen</p>
-      <p v-else>Kind hinzufügen</p>
+      <p>Kind hinzufügen</p>
     </div>
   </button>
   <TransitionRoot appear :show="$isAddChildModalOpen" as="template">
@@ -58,6 +71,8 @@ const enabled = ref(false);
       @close="
         () => {
           isAddChildModalOpen.set(false);
+          clearAddChildInputs();
+          editChildMode.set(null);
         }
       "
       class="relative z-10"
@@ -215,40 +230,30 @@ const enabled = ref(false);
                 class="w-max mt-8 rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 @click="
                   () => {
-                    isAddChildModalOpen.set(false);
-                    if (enabled) {
-                      wasHereBefore.set(true);
-                    }
-                    addChild(
-                      $childName,
-                      $positives,
-                      $negatives,
-                      $zusätzliches,
-                      $positivesVerbessert,
-                      $wasHereBefore,
-                      $birthday,
-                      $wasHereYear
-                    );
-                    childName.set(null);
-                    positives.set(null);
-                    negatives.set(null);
-                    zusätzliches.set(null);
-                    positivesVerbessert.set(null);
-                    wasHereBefore.set(false);
-                    birthday.set(null);
-                    wasHereYear.set(null);
-                    setTimeout(() => {
-                      enabled = false;
-                    }, 1000);
+                    addNewChild({
+                      name: $childName,
+                      pos: $positives,
+                      neg: $negatives,
+                      zus: $zusätzliches,
+                      posVer: $positivesVerbessert,
+                      wasHere: $wasHereBefore,
+                      bday: $birthday,
+                      whenWasHere: $wasHereYear,
+                    });
                   }
                 "
               >
                 <div class="flex gap-2 items-center">
                   <Icon icon="material-symbols:add-box" width="1.5rem" />
-
-                  <p>{{ $childName || "Kind" }} hinzufügen fuck</p>
+                  <p v-if="$editChildMode">
+                    {{ $childName || "Kind" }} aktualisieren
+                  </p>
+                  <p v-else>{{ $childName || "Kind" }} hinzufügen</p>
                 </div>
               </button>
+              <div class="text-red-500">
+                {{ $addChildErrorMessage }}
+              </div>
             </DialogPanel>
           </TransitionChild>
         </div>
